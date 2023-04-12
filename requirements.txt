@@ -1,4 +1,5 @@
-requests
+aiofiles
+aiohttp
+geojson
 pandas
 beautifulsoup4
-geojson

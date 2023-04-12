@@ -1,7 +1,6 @@
 import asyncio
 import datetime as dt
 import io
-from array import array
 from pathlib import Path
 from typing import Iterator, AsyncGenerator
 
@@ -10,6 +9,7 @@ import aiohttp
 import geojson
 import pandas as pd
 from bs4 import BeautifulSoup
+
 
 BASE_DIR: Path = Path(__file__).parent
 STORAGE_DIR: Path = BASE_DIR / 'storage'
