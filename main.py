@@ -2,7 +2,7 @@ import asyncio
 import datetime as dt
 import io
 from pathlib import Path
-from typing import Iterator, AsyncGenerator, Generator
+from typing import Iterator, AsyncGenerator, Generator, Final, Set
 
 import aiofiles
 import aiohttp
@@ -11,11 +11,11 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 
-BASE_DIR: Path = Path(__file__).parent
-BASE_URL: str = 'https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/'
-SEMAPHORE_LIMIT: int = 5
+BASE_DIR: Final[Path] = Path(__file__).parent
+BASE_URL:  Final[str] = 'https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/'
+SEMAPHORE_LIMIT:  Final[int] = 5
 with open(BASE_DIR / 'stations.txt') as f:
-    STATIONS_IDS = [station_id for station_id in f.read().split()]
+    STATIONS_IDS: Final[Set] = set([station_id for station_id in f.read().split()])
 
 
 def parse_page_to_links(html: str) -> Generator[str]:
@@ -42,9 +42,8 @@ async def bulk_download_csv(links: Iterator[str], page_url: str,
     tasks = [asyncio.create_task(download_csv(f'{page_url}{link}', session, semaphore)) for link in links]
     for task in asyncio.as_completed(tasks):
         try:
-            csv_file = await task
-        except Exception as e:
-            print('Невозможно скачать файл. Произошла ошибка:', e)
+            csv_file: str = await task
+        except Exception:
             continue
         else:
             yield csv_file
