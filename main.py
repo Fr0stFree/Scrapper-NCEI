@@ -18,13 +18,13 @@ with open(BASE_DIR / 'stations.txt') as f:
     STATIONS_IDS: Final[Set] = set([station_id for station_id in f.read().split()])
 
 
-def parse_page_to_links(html: str) -> Generator[str]:
+def parse_page_to_links(html: str) -> Generator[str, None, None]:
     soup = BeautifulSoup(html, "html.parser")
     table = soup.find("table")
     return (link["href"] for link in table.find_all("a"))
 
 
-def filter_links(links: Generator[str]) -> Iterator[str]:
+def filter_links(links: Generator[str, None, None]) -> Iterator[str]:
     return filter(lambda link: any([link.startswith(station_id) for station_id in STATIONS_IDS]), links)
 
 
