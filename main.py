@@ -10,9 +10,8 @@ import geojson
 import pandas as pd
 from bs4 import BeautifulSoup
 
-
 BASE_DIR: Final[Path] = Path(__file__).parent
-BASE_URL:  Final[str] = 'https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/'
+BASE_URL: Final[str] = 'https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/'
 SEMAPHORE_LIMIT:  Final[int] = 5
 with open(BASE_DIR / 'stations.txt') as f:
     STATIONS_IDS: Final[Set] = set([station_id for station_id in f.read().split()])
