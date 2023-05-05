@@ -48,21 +48,24 @@ async def bulk_download_csv(links: Iterator[str], page_url: str,
             yield csv_file
 
 
-def find_row_by_date(csv_file: str, date: dt.datetime) -> pd.DataFrame:
+def find_rows_by_date(csv_file: str, start: dt.datetime, end: dt.datetime) -> pd.DataFrame:
     df = pd.read_csv(io.StringIO(csv_file), sep=',', header=0)
-    row = df.loc[df['DATE'] == date.strftime("%Y-%m-%d")]
-    return row
+    rows = df.loc[(df['DATE'] >= start.strftime("%Y-%m-%d")) & (df['DATE'] <= end.strftime("%Y-%m-%d"))]
+    return rows
 
 
-def df_to_feature(data: pd.DataFrame) -> geojson.Feature:
-    dict_data = data.to_dict(orient='records')[0]
-    lon = dict_data.pop('LONGITUDE')
-    lat = dict_data.pop('LATITUDE')
-    return geojson.Feature(geometry=geojson.Point((lon, lat)), properties=dict_data)
-    
+def df_to_feature(data: pd.DataFrame) -> list[geojson.Feature]:
+    features = []
+    for record in data.to_dict(orient='records'):
+        lon = record.pop('LONGITUDE')
+        lat = record.pop('LATITUDE')
+        feature = geojson.Feature(geometry=geojson.Point((lon, lat)), properties=record)
+        features.append(feature)
+    return features
 
-async def main(looking_date: dt.datetime):
-    page_url = f'{BASE_URL}{looking_date.year}/'
+
+async def main(start_datetime: dt.datetime, end_datetime: dt.datetime) -> None:
+    page_url = f'{BASE_URL}{end_datetime.year}/'
     feature_collection = geojson.FeatureCollection([])
 
     # Download base page
@@ -75,14 +78,16 @@ async def main(looking_date: dt.datetime):
 
         # Download datasets from every link and add it to feature collection
         async for csv_file in bulk_download_csv(links, page_url, session):
-            row: pd.DataFrame = find_row_by_date(csv_file, looking_date)
-            if not row.empty:
-                feature_collection.features.append(df_to_feature(row))
+            rows: pd.DataFrame = find_rows_by_date(csv_file, start_datetime, end_datetime)
+            if not rows.empty:
+                feature_collection.features.extend(df_to_feature(rows))
 
     # Save result
     async with aiofiles.open(BASE_DIR / 'result.geojson', "w", encoding="utf-8") as f:
         await f.write(geojson.dumps(feature_collection, indent=4))
-    
-        
+
+
 if __name__ == "__main__":
-    asyncio.run(main(looking_date=dt.datetime(2023, 1, 1)))
+    end_datetime = dt.datetime.now()
+    start_datetime = end_datetime - dt.timedelta(days=4)
+    asyncio.run(main(start_datetime, end_datetime))
