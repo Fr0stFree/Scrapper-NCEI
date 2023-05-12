@@ -64,8 +64,8 @@ def df_to_feature(data: pd.DataFrame) -> list[geojson.Feature]:
     return features
 
 
-async def main(start_datetime: dt.datetime, end_datetime: dt.datetime) -> None:
-    page_url = f'{BASE_URL}{end_datetime.year}/'
+async def main(start: dt.datetime, end: dt.datetime) -> None:
+    page_url = f'{BASE_URL}{end.year}/'
     feature_collection = geojson.FeatureCollection([])
 
     # Download base page
@@ -76,9 +76,9 @@ async def main(start_datetime: dt.datetime, end_datetime: dt.datetime) -> None:
         # Parsing page into filtered links
         links: Iterator[str] = filter_links(parse_page_to_links(html))
 
-        # Download datasets from every link and add it to feature collection
+        # Download datasets from every link and add it to feature collection.
         async for csv_file in bulk_download_csv(links, page_url, session):
-            rows: pd.DataFrame = find_rows_by_date(csv_file, start_datetime, end_datetime)
+            rows: pd.DataFrame = find_rows_by_date(csv_file, start, end)
             if not rows.empty:
                 feature_collection.features.extend(df_to_feature(rows))
 
