@@ -4,10 +4,10 @@
 - Скрипт парсит [страницу](https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/) и ищет ссылки на датасеты.
 - Скрипт загружает датасеты с указанными в <code>stations.txt</code> ID станций. Станции можно удалять или добавлять новые.
 - Текущее расположение станций и их характеристики можно посмотреть на [geojson.io](https://geojson.io) _(пример на картинке)_ вставив в окно спарва текущий geojson _(находится в public/example.geojson)._
-![Текущие станции](public/stations_overview.png)
+![Текущие станции](sources/ncei/public/stations_overview.png)
 - Местонахождение станций можно поискать на [официальном сайте](https://www.ncei.noaa.gov/access/search/data-search/global-summary-of-the-day)
 изменив зону поиска и посмотрев находящиеся внутри полигона ID станций.
-![Выбор новых станций](public/station_selection.png)
+![Выбор новых станций](sources/ncei/public/station_selection.png)
 - Данные загружаются в формате csv большими порциями, внутри которых присутствуют данныеи за другие даты _(можно оптимизировать)_
 - Скрипт ищет в загруженных файлах строки с заданной датой. В случае успеха добавляет их как объект Feature в Feature Collection формата GeoJSON.
 - По окончанию анализа всех файлов дампит файл <code>result.geojson</code>.
