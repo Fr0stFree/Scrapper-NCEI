@@ -2,4 +2,3 @@ aiohttp
 geojson
 pandas
 beautifulsoup4
-loguru

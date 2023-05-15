@@ -1,5 +1,6 @@
 import datetime as dt
 from pathlib import Path
+from typing import Self
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -7,29 +8,29 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from .locators import Locator, ArchivePage
+from .interface import DriverInterface
 
 
-class Driver:
+class ChromeDriver(DriverInterface):
     FAKE_USER_AGENT = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0"
 
-    def __init__(self, wait_limit: int = 6,
-                 storage_path: Path = None):
+    def __init__(self, storage_path: Path, wait_limit: int = 5) -> None:
         self._wait_limit = wait_limit
         self._options = self._set_options(storage_path)
-
-    def __enter__(self) -> 'Driver':
-        self._chrome = webdriver.Chrome(chrome_options=self._options)
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        self._chrome.close()
 
     def _set_options(self, storage_folder: Path | None) -> Options:
         options = Options()
         options.add_argument(f'User-Agent={self.FAKE_USER_AGENT}')
         if storage_folder is not None:
-            options.add_argument(f'download.default_directory={storage_path}')
+            options.add_argument(f'download.default_directory={storage_folder}')
         return options
+
+    def __enter__(self) -> Self:
+        self._chrome = webdriver.Chrome(chrome_options=self._options)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self._chrome.close()
 
     def open(self, url: str) -> None:
         return self._chrome.get(url)
@@ -63,4 +64,3 @@ class Driver:
     def _press_on(self, locator: Locator) -> None:
         WebDriverWait(self._chrome, self._wait_limit).until(EC.element_to_be_clickable(locator))
         self._chrome.find_element(*locator).click()
-
