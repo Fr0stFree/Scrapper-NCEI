@@ -7,7 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from .locators import Locator, ArchivePage
-from .settings import TEMP_DIR
 
 
 class Driver:
@@ -29,7 +28,7 @@ class Driver:
         options = Options()
         options.add_argument(f'User-Agent={self.FAKE_USER_AGENT}')
         if storage_folder is not None:
-            options.add_argument(f'download.default_directory={TEMP_DIR}')
+            options.add_argument(f'download.default_directory={storage_path}')
         return options
 
     def open(self, url: str) -> None:
