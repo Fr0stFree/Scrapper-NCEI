@@ -1,25 +1,25 @@
 import asyncio
-import datetime as dt
-from pathlib import Path
-from typing import Final
+from urllib.parse import urljoin
 
-from src import DataProcessor, Manipulator, PageDownloader, PageParser
-
-BASE_DIR: Final[Path] = Path(__file__).parent
-START_DATE: Final[dt.date] = dt.datetime.now().date()
-END_DATE: Final[dt.date] = START_DATE - dt.timedelta(days=4)
-BASE_URL: Final[str] = f'https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/{START_DATE.year}/'
+from src import DataProcessor, PageDownloader, PageParser
+from src import settings
+from src.utils import load_stations, save_geojson
 
 
 async def main() -> None:
-    station_ids = Manipulator.load_stations(BASE_DIR / 'stations.txt')
+    station_ids: set = load_stations(settings.BASE_DIR / 'data' / 'stations.txt')
+    downloader = PageDownloader(semaphore_limit=4)
+    parser = PageParser(html_parser='lxml')
+    processor = DataProcessor()
 
-    page = await PageDownloader.get(BASE_URL)
-    urls = (f'{BASE_URL}{link}' for link in PageParser.parse(station_ids, page))
-    async for csv_file in PageDownloader.get_concurrently(urls):
-        DataProcessor.run(csv_file, start_date=START_DATE, end_date=END_DATE)
+    page = await downloader.get(settings.BASE_URL)
+    relative_links = parser.parse(station_ids, page)
+    urls = (urljoin(settings.BASE_URL, link) for link in relative_links)
 
-    Manipulator.save_geojson(data=DataProcessor.result, path=BASE_DIR / 'data')
+    async for csv_file in downloader.get_concurrently(urls):
+        processor.process(csv_file, start_date=settings.START_DATE, end_date=settings.END_DATE)
+
+    save_geojson(data=processor.result, path=settings.BASE_DIR / 'data')
 
 
 if __name__ == "__main__":

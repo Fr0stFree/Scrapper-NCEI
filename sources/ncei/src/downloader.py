@@ -6,12 +6,13 @@ import aiohttp
 
 class PageDownloader:
     ENCODING: Final[str] = "utf-8"
-    semaphore: asyncio.Semaphore = asyncio.Semaphore(5)
 
-    @classmethod
-    async def get_concurrently(cls, urls: Iterable[str]) -> AsyncGenerator[str, None]:
+    def __init__(self, semaphore_limit: int = 5) -> None:
+        self.semaphore: asyncio.Semaphore = asyncio.Semaphore(semaphore_limit)
+
+    async def get_concurrently(self, urls: Iterable[str]) -> AsyncGenerator[str, None]:
         async with aiohttp.ClientSession() as session:
-            tasks = [asyncio.create_task(cls._get(url, session)) for url in urls]
+            tasks = [asyncio.create_task(self._get(url, session)) for url in urls]
             for task in asyncio.as_completed(tasks):
                 try:
                     page: str = await task
@@ -20,17 +21,15 @@ class PageDownloader:
                 else:
                     yield page
 
-    @classmethod
-    async def get(cls, url: str, session: Optional[aiohttp.ClientSession] = None) -> str:
+    async def get(self, url: str, session: Optional[aiohttp.ClientSession] = None) -> str:
         if session is not None:
-            return await cls._get(url, session)
+            return await self._get(url, session)
 
         async with aiohttp.ClientSession() as session:
-            return await cls._get(url, session)
+            return await self._get(url, session)
 
-    @classmethod
-    async def _get(cls, url: str, session: aiohttp.ClientSession) -> str:
-        async with cls.semaphore:
+    async def _get(self, url: str, session: aiohttp.ClientSession) -> str:
+        async with self.semaphore:
             async with session.get(url) as response:
                 response.raise_for_status()
-                return await response.text(encoding=cls.ENCODING)
+                return await response.text(encoding=self.ENCODING)
