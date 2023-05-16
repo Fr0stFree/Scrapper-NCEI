@@ -1,7 +1,7 @@
 import datetime as dt
 
 from src import StationManager, settings, FeatureProcessor
-from src.utils import save_geojson
+from src.utils import save_geojson, cleanup
 from src.webdriver import ChromeDriver, DownloadArchivesScenario
 
 if __name__ == '__main__':
@@ -18,3 +18,4 @@ if __name__ == '__main__':
         processor.process(station, path)
 
     save_geojson(data=processor.result, path=settings.DATA_DIR)
+    cleanup(settings.TEMP_DIR)
