@@ -16,4 +16,3 @@ class ArchivePage:
     END_DATE_INPUT = Locator(By.ID, 'calender_dload2')
     REQUEST_ARCHIVE_BUTTON = Locator(By.CSS_SELECTOR, 'td.download > div.archButton')
     DOWNLOAD_ARCHIVE_BUTTON = Locator(By.CSS_SELECTOR, 'span#f_result > a')
-

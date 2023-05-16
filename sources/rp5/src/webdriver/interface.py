@@ -1,14 +1,14 @@
 import datetime as dt
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Self, Iterable, Final
+from typing import Self
 
-from .. import settings
+from .locators import Locator
 
 
 class DriverInterface(ABC):
     @abstractmethod
-    def __init__(self, storage_path: Path, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         pass
 
     @abstractmethod
@@ -24,48 +24,30 @@ class DriverInterface(ABC):
         pass
 
     @abstractmethod
-    def goto_archive_tab(self) -> None:
+    def goto_archive_tab(self, locator: Locator) -> None:
         pass
 
     @abstractmethod
-    def select_csv_format(self) -> None:
+    def select_csv_format(self, locator: Locator) -> None:
         pass
 
     @abstractmethod
-    def select_utf8_encoding(self) -> None:
+    def select_utf8_encoding(self, locator: Locator) -> None:
         pass
 
     @abstractmethod
-    def enter_min_calendar_date(self, date: dt.date) -> None:
+    def enter_min_calendar_date(self, locator: Locator, date: dt.date) -> None:
         pass
 
     @abstractmethod
-    def enter_max_calendar_date(self, date: dt.date) -> None:
+    def enter_max_calendar_date(self, locator: Locator, date: dt.date) -> None:
         pass
 
     @abstractmethod
-    def request_archive(self) -> None:
+    def request_archive(self, locator: Locator) -> None:
         pass
 
     @abstractmethod
-    def download_archive(self) -> None:
+    def download_archive(self, locator: Locator, file_name: str) -> Path:
         pass
 
-    @classmethod
-    def download_archives(cls, urls: Iterable[str],
-                          min_date: dt.date,
-                          max_date: dt.date,
-                          storage_path: Path,
-                          *args, **kwargs):
-        with cls(storage_path, *args, **kwargs) as driver:
-            for url in urls:
-                driver.open(url)
-                driver.goto_archive_tab()
-                driver.select_csv_format()
-                driver.select_utf8_encoding()
-                driver.enter_min_calendar_date(min_date)
-                driver.enter_max_calendar_date(max_date)
-                driver.request_archive()
-                driver.download_archive()
-
-        return (file for file in storage_path.iterdir() if file.suffix == '.gz')
