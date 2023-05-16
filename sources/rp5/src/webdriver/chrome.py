@@ -54,9 +54,7 @@ class ChromeDriver(DriverInterface):
     def download_archive(self, element_locator: Locator, save_to: Path) -> None:
         self._wait_for_element(element_locator)
         url = self._chrome.find_element(*element_locator).get_attribute('href')
-
         response = self._session.get(url)
-
         with open(save_to, 'wb') as file:
             file.write(response.content)
 
