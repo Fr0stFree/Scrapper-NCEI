@@ -1,2 +1,2 @@
 from .processor import FeatureProcessor
-from .stations import StationManager, Station
+from .stations import stations, Station

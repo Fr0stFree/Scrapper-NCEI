@@ -14,20 +14,19 @@ from .locators import Locator
 
 class ChromeDriver(DriverInterface):
     FAKE_USER_AGENT = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0"
+    WAIT_LIMIT: int = 5  # sec
 
-    def __init__(self, *, storage_folder: Path, wait_limit: int = 5) -> None:
-        self._wait_limit = wait_limit
-        self._storage_folder = storage_folder
+    def __init__(self) -> None:
         self._options = Options()
         self._options.add_argument(f'User-Agent={self.FAKE_USER_AGENT}')
 
-    def __enter__(self) -> Self:
+    def start(self) -> Self:
         self._session = requests.session()
         self._session.headers = {'User-Agent': self.FAKE_USER_AGENT}
         self._chrome = webdriver.Chrome(options=self._options)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def finish(self) -> None:
         self._session.close()
         self._chrome.close()
 
@@ -52,15 +51,14 @@ class ChromeDriver(DriverInterface):
     def request_archive(self, element_locator: Locator) -> None:
         self._press_on(element_locator)
 
-    def download_archive(self, element_locator: Locator, file_name: str) -> Path:
+    def download_archive(self, element_locator: Locator, save_to: Path) -> None:
         self._wait_for_element(element_locator)
         url = self._chrome.find_element(*element_locator).get_attribute('href')
+
         response = self._session.get(url)
 
-        with open(self._storage_folder / file_name, 'wb') as file:
+        with open(save_to, 'wb') as file:
             file.write(response.content)
-
-        return Path(file.name)
 
     def _enter_in(self, element_locator: Locator, value: str) -> None:
         self._wait_for_element(element_locator)
@@ -73,4 +71,4 @@ class ChromeDriver(DriverInterface):
         self._chrome.find_element(*element_locator).click()
 
     def _wait_for_element(self, element_locator: Locator) -> None:
-        WebDriverWait(self._chrome, self._wait_limit).until(EC.element_to_be_clickable(element_locator))
+        WebDriverWait(self._chrome, self.WAIT_LIMIT).until(EC.element_to_be_clickable(element_locator))

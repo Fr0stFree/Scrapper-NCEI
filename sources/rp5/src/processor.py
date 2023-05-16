@@ -5,8 +5,6 @@ import geojson
 import numpy as np
 import pandas as pd
 
-from .stations import Station
-
 
 class FeatureProcessor:
     HEADER_COLUMN: Final[int] = 6
@@ -18,7 +16,7 @@ class FeatureProcessor:
     def __init__(self) -> None:
         self._result = geojson.FeatureCollection([])
 
-    def process(self, station: Station, path: Path) -> None:
+    def process(self, path: Path, coordinates: tuple[float, float]) -> None:
         df = pd.read_csv(
             path,
             compression=self.COMPRESSION,
@@ -28,7 +26,7 @@ class FeatureProcessor:
         )
         df.replace(np.nan, None, inplace=True)
         df.rename(columns={df.columns[0]: 'DATETIME'}, inplace=True)
-        features = self._csv_to_features(data=df, coordinates=(station.longitude, station.latitude))
+        features = self._csv_to_features(data=df, coordinates=coordinates)
         self._result.features.extend(features)
 
     def _csv_to_features(self, data: pd.DataFrame, coordinates: tuple[float, float]) -> list[geojson.Feature]:

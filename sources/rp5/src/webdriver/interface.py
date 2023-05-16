@@ -12,11 +12,11 @@ class DriverInterface(ABC):
         pass
 
     @abstractmethod
-    def __enter__(self) -> Self:
+    def start(self) -> Self:
         pass
 
     @abstractmethod
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def finish(self) -> None:
         pass
 
     @abstractmethod
@@ -48,6 +48,6 @@ class DriverInterface(ABC):
         pass
 
     @abstractmethod
-    def download_archive(self, locator: Locator, file_name: str) -> Path:
+    def download_archive(self, locator: Locator, save_to: Path) -> None:
         pass
 
