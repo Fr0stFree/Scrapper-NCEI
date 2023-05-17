@@ -4,22 +4,27 @@ import geojson
 
 from src import Station, stations, settings
 from src.converter import CSVToFeatureConverter
-from src.utils import save_geojson, cleanup, extract_csv, task_error_handler
 from src.webdriver import ChromeDriver
 from src.scenario import RP5ParseScenario
+from src.extractor import StationCSVExtractor
+from src.utils import save_geojson, cleanup, task_error_handler
 
 
 @task_error_handler
-def get_station_feature_collection(station: Station, converter: CSVToFeatureConverter) -> geojson.FeatureCollection:
+def get_station_feature_collection(station: Station,
+                                   extractor: StationCSVExtractor,
+                                   scenario: RP5ParseScenario,
+                                   converter: CSVToFeatureConverter) -> geojson.FeatureCollection:
     file_path = settings.TEMP_DIR / station.id
-    scenario.download(station.url, save_to=file_path)
-    dataframe = extract_csv(file_path, compression='gzip', delimiter=';', header=6, index_col=False)
+
+    scenario.download(url=station.url, save_to=file_path)
+    df = extractor.extract(file_path)
     extra_props = {'id': station.id, 'name': station.name}
-    collection = converter.df_to_collection(dataframe,
-                                            coordinates=(station.longitude, station.latitude),
-                                            **extra_props)
+    feature_collection = converter.df_to_collection(df, coordinates=(station.longitude, station.latitude),
+                                                    **extra_props)
+
     cleanup(file_path)
-    return collection
+    return feature_collection
 
 
 if __name__ == '__main__':
@@ -27,10 +32,14 @@ if __name__ == '__main__':
     min_date = max_date - dt.timedelta(settings.DATA_AMOUNT_IN_DAYS)
     data = geojson.FeatureCollection([])
 
-    converter = CSVToFeatureConverter(dt_column=0, dt_format='%d.%m.%Y %H:%M')
+    extractor = StationCSVExtractor()
+    converter = CSVToFeatureConverter(dt_column=extractor.DATETIME_COLUMN,
+                                      dt_format=extractor.DATETIME_FORMAT)
+
     with RP5ParseScenario(ChromeDriver, min_date, max_date) as scenario:
         for station in stations:
-            collection = get_station_feature_collection(station, converter)
+            collection = get_station_feature_collection(station, extractor, scenario, converter)
+            data.update(collection)
 
     save_geojson(data, save_to=settings.DATA_DIR)
     cleanup(settings.TEMP_DIR)

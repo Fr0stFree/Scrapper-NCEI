@@ -9,7 +9,7 @@ from .exceptions import ConvertingFailed
 class CSVToFeatureConverter:
     DATETIME_COLUMN_NAME: Final[str] = 'datetime'
 
-    def __init__(self, dt_column, dt_format: str) -> None:
+    def __init__(self, dt_column: int, dt_format: str) -> None:
         self._dt_column = dt_column
         self._dt_format = dt_format
 
