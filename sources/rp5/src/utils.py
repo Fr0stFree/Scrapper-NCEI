@@ -10,8 +10,8 @@ import pandas as pd
 from . import exceptions
 
 
-def save_geojson(data: geojson.GeoJSON, path: Path, name: str = 'result') -> None:
-    with open(path / f'{name}.geojson', "w", encoding='utf-8') as f:
+def save_geojson(data: geojson.GeoJSON, save_to: Path, name: str = 'result') -> None:
+    with open(save_to / f'{name}.geojson', "w", encoding='utf-8') as f:
         f.write(geojson.dumps(data, indent=4))
 
 
@@ -20,7 +20,10 @@ def extract_csv(path: Path, **kwargs):
 
 
 def cleanup(path: Path) -> None:
-    shutil.rmtree(path)
+    if path.is_dir():
+        path.rmdir()
+    else:
+        path.unlink()
 
 
 def task_error_handler(task: Callable) -> Any:

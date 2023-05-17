@@ -10,16 +10,16 @@ from src.scenario import RP5ParseScenario
 
 
 @task_error_handler
-def get_station_feature_collection(station: Station) -> geojson.FeatureCollection:
-    url = station.url
+def get_station_feature_collection(station: Station, converter: CSVToFeatureConverter) -> geojson.FeatureCollection:
     file_path = settings.TEMP_DIR / station.id
-
-    scenario.download(url, save_to=file_path)
+    scenario.download(station.url, save_to=file_path)
     dataframe = extract_csv(file_path, compression='gzip', delimiter=';', header=6, index_col=False)
     extra_props = {'id': station.id, 'name': station.name}
-    return converter.df_to_collection(dataframe,
-                                      coordinates=(station.longitude, station.latitude),
-                                      **extra_props)
+    collection = converter.df_to_collection(dataframe,
+                                            coordinates=(station.longitude, station.latitude),
+                                            **extra_props)
+    cleanup(file_path)
+    return collection
 
 
 if __name__ == '__main__':
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     converter = CSVToFeatureConverter(dt_column=0, dt_format='%d.%m.%Y %H:%M')
     with RP5ParseScenario(ChromeDriver, min_date, max_date) as scenario:
         for station in stations:
-            collection = get_station_feature_collection(station)
+            collection = get_station_feature_collection(station, converter)
 
-    save_geojson(data=collection, path=settings.DATA_DIR)
+    save_geojson(data, save_to=settings.DATA_DIR)
     cleanup(settings.TEMP_DIR)
