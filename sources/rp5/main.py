@@ -1,21 +1,36 @@
 import datetime as dt
 
-from src import stations, settings
-from src.processor import FeatureProcessor
-from src.utils import save_geojson, cleanup, extract_csv
-from src.webdriver import ChromeDriver, RP5ParseScenario
+import geojson
+
+from src import Station, stations, settings
+from src.converter import CSVToFeatureConverter
+from src.utils import save_geojson, cleanup, extract_csv, task_error_handler
+from src.webdriver import ChromeDriver
+from src.scenario import RP5ParseScenario
+
+
+@task_error_handler
+def get_station_feature_collection(station: Station) -> geojson.FeatureCollection:
+    url = station.url
+    file_path = settings.TEMP_DIR / station.id
+
+    scenario.download(url, save_to=file_path)
+    dataframe = extract_csv(file_path, compression='gzip', delimiter=';', header=6, index_col=False)
+    extra_props = {'id': station.id, 'name': station.name}
+    return converter.df_to_collection(dataframe,
+                                      coordinates=(station.longitude, station.latitude),
+                                      **extra_props)
+
 
 if __name__ == '__main__':
     max_date = dt.datetime.now().date()
     min_date = max_date - dt.timedelta(settings.DATA_AMOUNT_IN_DAYS)
-    processor = FeatureProcessor()
+    data = geojson.FeatureCollection([])
 
+    converter = CSVToFeatureConverter(dt_column=0, dt_format='%d.%m.%Y %H:%M')
     with RP5ParseScenario(ChromeDriver, min_date, max_date) as scenario:
         for station in stations:
-            file_path = settings.TEMP_DIR / station.id
-            scenario.download(station.url, save_to=file_path)
-            dataframe = extract_csv(file_path, compression='gzip', delimiter=';', header=6, index_col=False)
-            processor.convert_df_to_geojson(dataframe, coordinates=(station.longitude, station.latitude))
+            collection = get_station_feature_collection(station)
 
-    save_geojson(data=processor.result, path=settings.DATA_DIR)
+    save_geojson(data=collection, path=settings.DATA_DIR)
     cleanup(settings.TEMP_DIR)
