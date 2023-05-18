@@ -32,11 +32,10 @@ if __name__ == '__main__':
     min_date = max_date - dt.timedelta(settings.DATA_AMOUNT_IN_DAYS)
     data = geojson.FeatureCollection([])
 
-    extractor = StationCSVExtractor()
-    converter = CSVToFeatureConverter(dt_column=extractor.DATETIME_COLUMN,
-                                      dt_format=extractor.DATETIME_FORMAT)
-
     with RP5ParseScenario(ChromeDriver, min_date, max_date) as scenario:
+        extractor = StationCSVExtractor()
+        converter = CSVToFeatureConverter(datetime_column=extractor.datetime_column,
+                                          datetime_format=extractor.datetime_format)
         for station in stations:
             collection = get_station_feature_collection(station, extractor, scenario, converter)
             data.update(collection)

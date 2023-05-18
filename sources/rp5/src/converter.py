@@ -9,9 +9,9 @@ from .exceptions import ConvertingFailed
 class CSVToFeatureConverter:
     DATETIME_COLUMN_NAME: Final[str] = 'datetime'
 
-    def __init__(self, dt_column: int, dt_format: str) -> None:
-        self._dt_column = dt_column
-        self._dt_format = dt_format
+    def __init__(self, datetime_column: int, datetime_format: str) -> None:
+        self._dt_column = datetime_column
+        self._dt_format = datetime_format
 
     def df_to_collection(self, df: pd.DataFrame,
                          coordinates: tuple[float, float],

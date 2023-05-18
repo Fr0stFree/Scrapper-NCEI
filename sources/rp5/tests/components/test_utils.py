@@ -1,12 +1,9 @@
 from pathlib import Path
 
 import pytest
-import loguru
 
-from src import settings, exceptions
-from src.utils import cleanup, save_geojson
-
-logger = loguru.logger
+from src import settings
+from src.utils import cleanup
 
 
 class TestCleanup:
@@ -43,4 +40,3 @@ class TestCleanup:
         cleanup(temp_dir)
 
         assert not temp_dir.exists()
-

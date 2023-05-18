@@ -1,4 +1,5 @@
 import pytest
+import loguru
 
 from src import settings
 from src.exceptions import InvalidStationCSV

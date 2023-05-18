@@ -38,3 +38,11 @@ class StationCSVExtractor:
             return False, f'Invalid datetime format. Expected format: {self.DATETIME_FORMAT}. Got: {datetime_cell}.'
 
         return True, ''
+
+    @property
+    def datetime_column(self) -> int:
+        return self.DATETIME_COLUMN
+
+    @property
+    def datetime_format(self) -> str:
+        return self.DATETIME_FORMAT
