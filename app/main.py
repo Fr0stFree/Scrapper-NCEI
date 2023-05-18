@@ -7,7 +7,7 @@ from src.utils import load_stations, save_geojson
 
 
 async def main() -> None:
-    station_ids: set = load_stations(settings.BASE_DIR / 'data' / 'stations.txt')
+    station_ids: set = load_stations(settings.BASE_DIR / 'data' / 'station_ids.txt')
     downloader = PageDownloader(semaphore_limit=4)
     parser = PageParser(html_parser='lxml')
     processor = DataProcessor()

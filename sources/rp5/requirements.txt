@@ -1,6 +1,0 @@
-geojson
-selenium
-loguru
-pandas
-requests
-pytest
